@@ -107,6 +107,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 获取脱敏类的用户信息
+     *
      * @param user
      * @return
      */
@@ -116,6 +117,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         LoginUserVO loginUserVO = new LoginUserVO();
         BeanUtil.copyProperties(user, loginUserVO);
         return loginUserVO;
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        return null;
     }
 
 
