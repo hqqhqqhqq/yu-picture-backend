@@ -68,6 +68,7 @@ public interface UserService extends IService<User> {
 
     /**
      * 获取脱敏后的用户信息
+     *
      * @param user
      * @return
      */
@@ -75,6 +76,7 @@ public interface UserService extends IService<User> {
 
     /**
      * 获取脱敏后的用户列表
+     *
      * @param userList
      * @return
      */
@@ -82,8 +84,19 @@ public interface UserService extends IService<User> {
 
     /**
      * 获取查询封装器
+     *
      * @param userQueryRequest
      * @return
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+
+
+    /**
+     * 是否为管理员
+     *
+     * @param user
+     * @return
+     */
+    boolean isAdmin(User user);
+
 }

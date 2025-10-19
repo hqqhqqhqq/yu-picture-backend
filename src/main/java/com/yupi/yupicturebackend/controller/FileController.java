@@ -25,7 +25,7 @@ import java.io.IOException;
 public class FileController {
 
     @Resource
-    CosManager cosManager;
+    private CosManager cosManager;
 
     /**
      * 测试文件上传

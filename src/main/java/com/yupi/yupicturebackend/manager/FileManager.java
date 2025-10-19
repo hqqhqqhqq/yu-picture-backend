@@ -23,12 +23,12 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class FileManager {  
-  
+public class FileManager {
+
     @Resource
     private CosClientConfig cosClientConfig;
-  
-    @Resource  
+
+    @Resource
     private CosManager cosManager;
 
     /**
