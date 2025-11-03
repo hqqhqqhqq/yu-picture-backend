@@ -10,6 +10,7 @@ import com.yupi.yupicturebackend.constant.UserConstant;
 import com.yupi.yupicturebackend.exception.BusinessException;
 import com.yupi.yupicturebackend.exception.ErrorCode;
 import com.yupi.yupicturebackend.exception.ThrowUtils;
+import com.yupi.yupicturebackend.model.dto.space.SpaceAddRequest;
 import com.yupi.yupicturebackend.model.dto.space.SpaceEditRequest;
 import com.yupi.yupicturebackend.model.dto.space.SpaceQueryRequest;
 import com.yupi.yupicturebackend.model.dto.space.SpaceUpdateRequest;
@@ -36,6 +37,14 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
+
+    @PostMapping("/add")
+    public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceADDRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(spaceADDRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        long newId = spaceService.addSpace(spaceADDRequest, loginUser);
+        return ResultUtils.success(newId);
+    }
 
 
     @PostMapping("/delete")
