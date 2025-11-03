@@ -20,6 +20,8 @@ public interface SpaceService extends IService<Space> {
 
     void validSpace(Space space, boolean add);
 
+    long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+
     Page<SpaceVO> getSpaceVOPage(Page<Space> spacePage, HttpServletRequest request);
 
     SpaceVO getSpaceVO(Space space, HttpServletRequest request);
