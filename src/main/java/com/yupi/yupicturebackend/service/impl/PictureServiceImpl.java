@@ -173,7 +173,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             // 更新空间的使用额度
             boolean update = spaceService.lambdaUpdate()
                     .eq(Space::getId, finalSpaceId)
-                    .setSql("totalSize = totalSize + ?" + picture.getPicSize())
+                    .setSql("totalSize = totalSize + " + picture.getPicSize())
                     .setSql("totalCount = totalCount + 1")
                     .update();
             ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "更新空间额度失败");
@@ -445,13 +445,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     public void checkPictureAuth(User loginUser, Picture picture) {
         Long spaceId = picture.getSpaceId();
         Long loginUserId = loginUser.getId();
-        if (spaceId == null){
+        if (spaceId == null) {
             // 公共图库 仅本人或者管理员可操作
-            if(!picture.getUserId().equals(loginUserId) && !userService.isAdmin(loginUser)){
+            if (!picture.getUserId().equals(loginUserId) && !userService.isAdmin(loginUser)) {
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }else{
+            } else {
                 // 私有空间 仅空间管理员可以操作
-                if(!picture.getUserId().equals(loginUserId)){
+                if (!picture.getUserId().equals(loginUserId)) {
                     throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
                 }
             }
@@ -508,7 +508,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         boolean result = this.updateById(picture);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
-
 
 
 }
