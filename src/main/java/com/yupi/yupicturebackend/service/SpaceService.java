@@ -2,8 +2,11 @@ package com.yupi.yupicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.yupi.yupicturebackend.exception.ErrorCode;
+import com.yupi.yupicturebackend.exception.ThrowUtils;
 import com.yupi.yupicturebackend.model.dto.space.SpaceAddRequest;
 import com.yupi.yupicturebackend.model.dto.space.SpaceQueryRequest;
+import com.yupi.yupicturebackend.model.dto.space.analyze.SpaceAnalyzeRequest;
 import com.yupi.yupicturebackend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yupi.yupicturebackend.model.entity.User;
@@ -29,4 +32,14 @@ public interface SpaceService extends IService<Space> {
     void fillSpaceBySpaceLevel(Space space);
 
     QueryWrapper<Space> getQueryWrapper(SpaceQueryRequest spaceQueryRequest);
+
+
+    /**
+     * 校验空间权限
+     *
+     * @param space
+     * @param loginUser
+     */
+    void checkSpaceAuth(User loginUser, Space space);
+
 }
