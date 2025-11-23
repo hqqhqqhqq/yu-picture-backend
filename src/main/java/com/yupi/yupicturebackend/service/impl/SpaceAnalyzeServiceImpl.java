@@ -276,11 +276,13 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space> imp
     boolean queryPublic = spaceAnalyzeRequest.isQueryPublic();
     if (queryPublic) {
       queryWrapper.isNull("spaceId");
+      return;
     }
     // 分析特定空间
     Long spaceId = spaceAnalyzeRequest.getSpaceId();
     if (spaceId != null) {
       queryWrapper.eq("spaceId", spaceId);
+      return;
     }
 
     throw new BusinessException(ErrorCode.PARAMS_ERROR, "没有指定查询范围");
