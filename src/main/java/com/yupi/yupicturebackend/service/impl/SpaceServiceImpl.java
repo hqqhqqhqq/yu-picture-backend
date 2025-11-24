@@ -25,8 +25,8 @@ import com.yupi.yupicturebackend.service.SpaceService;
 import com.yupi.yupicturebackend.mapper.SpaceMapper;
 import com.yupi.yupicturebackend.service.SpaceUserService;
 import com.yupi.yupicturebackend.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
@@ -50,10 +50,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
   private UserService userService;
 
   @Resource
-  private TransactionTemplate transactionTemplate;
+  private SpaceUserService spaceUserService;
 
   @Resource
-  private SpaceUserService spaceUserService;
+  private TransactionTemplate transactionTemplate;
 
 
   @Override
