@@ -10,9 +10,9 @@ import com.yupi.yupicturebackend.exception.BusinessException;
 import com.yupi.yupicturebackend.exception.ErrorCode;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.yupicturebackend.exception.ThrowUtils;
+import com.yupi.yupicturebackend.manager.sharding.DynamicShardingManager;
 import com.yupi.yupicturebackend.model.dto.space.SpaceAddRequest;
 import com.yupi.yupicturebackend.model.dto.space.SpaceQueryRequest;
-import com.yupi.yupicturebackend.model.dto.space.analyze.SpaceAnalyzeRequest;
 import com.yupi.yupicturebackend.model.entity.Space;
 import com.yupi.yupicturebackend.model.entity.SpaceUser;
 import com.yupi.yupicturebackend.model.entity.User;
@@ -54,6 +54,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
   @Resource
   private TransactionTemplate transactionTemplate;
+// 非必要 不进行分库分表
+//  @Resource
+//  @Lazy
+//  private DynamicShardingManager dynamicShardingManager;
 
 
   @Override
@@ -140,6 +144,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
           result = spaceUserService.save(spaceUser);
           ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
         }
+        // 创建分表
+//        dynamicShardingManager.createSpacePictureTable(space);
         // 返回新写入的数据 id
         return space.getId();
       });
