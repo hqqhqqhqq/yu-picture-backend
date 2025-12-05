@@ -114,10 +114,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (pictureId != null) {
             Picture oldPicture = this.getById(pictureId);
             ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+            // 改为使用统一的权限校验
             // 仅本人和管理员可以更改图片信息
-            if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }
+//            if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+//                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+//            }
             // 校验空间是否一致
             // 没有 spaceId 则复用原有图片的 spaceId（也兼容也公共图库）
             if (spaceId == null) {
