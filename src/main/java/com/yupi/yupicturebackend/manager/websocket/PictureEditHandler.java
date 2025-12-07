@@ -5,11 +5,13 @@ import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.yupi.yupicturebackend.manager.websocket.model.PictureEditActionEnum;
 import com.yupi.yupicturebackend.manager.websocket.model.PictureEditMessageTypeEnum;
 import com.yupi.yupicturebackend.manager.websocket.model.PictureEditRequestMessage;
 import com.yupi.yupicturebackend.manager.websocket.model.PictureEditResponseMessage;
 import com.yupi.yupicturebackend.model.entity.User;
 import com.yupi.yupicturebackend.service.UserService;
+import groovyjarjarantlr4.v4.runtime.misc.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -18,6 +20,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -137,27 +140,86 @@ public class PictureEditHandler extends TextWebSocketHandler {
    * @param user
    * @param pictureId
    */
-  private void handleEditActionMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) {
-
+  public void handleEditActionMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) throws Exception {
+    Long editingUserId = pictureEditingUsers.get(pictureId);
+    String editAction = pictureEditRequestMessage.getEditAction();
+    PictureEditActionEnum actionEnum = PictureEditActionEnum.getEnumByValue(editAction);
+    if (actionEnum == null) {
+      return;
+    }
+    // 确认是当前编辑者
+    if (editingUserId != null && editingUserId.equals(user.getId())) {
+      PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
+      pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.EDIT_ACTION.getValue());
+      String message = String.format("%s 执行 %s", user.getUserName(), actionEnum.getText());
+      pictureEditResponseMessage.setMessage(message);
+      pictureEditResponseMessage.setEditAction(editAction);
+      pictureEditResponseMessage.setUser(userService.getUserVO(user));
+      // 广播给除了当前客户端之外的其他用户，否则会造成重复编辑
+      broadcastToPicture(pictureId, pictureEditResponseMessage, session);
+    }
   }
+
 
 
   /**
    * 退出编辑状态
+   *
+   * @param pictureEditRequestMessage
+   * @param session
+   * @param user
+   * @param pictureId
+   */
+  public void handleExitEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) throws Exception {
+    // 正在编辑的用户
+    Long editingUserId = pictureEditingUsers.get(pictureId);
+    // 确认是当前的编辑者
+    if (editingUserId != null && editingUserId.equals(user.getId())) {
+      // 移除用户正在编辑该图片
+      pictureEditingUsers.remove(pictureId);
+      // 构造响应，发送退出编辑的消息通知
+      PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
+      pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.EXIT_EDIT.getValue());
+      String message = String.format("用户 %s 退出编辑图片", user.getUserName());
+      pictureEditResponseMessage.setMessage(message);
+      pictureEditResponseMessage.setUser(userService.getUserVO(user));
+      broadcastToPicture(pictureId, pictureEditResponseMessage);
+    }
+  }
+
+
+  /**
+   * 关闭连接 释放资源
    * @param session
    * @param status
    * @throws Exception
    */
-  private void handleExitEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) {
-
-
-  }
-
-
   @Override
-  public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-    super.afterConnectionClosed(session, status);
+  public void afterConnectionClosed(WebSocketSession session, @NotNull CloseStatus status) throws Exception {
+    Map<String, Object> attributes = session.getAttributes();
+    Long pictureId = (Long) attributes.get("pictureId");
+    User user = (User) attributes.get("user");
+    // 移除当前用户的编辑状态
+    handleExitEditMessage(null, session, user, pictureId);
+
+    // 删除会话
+    Set<WebSocketSession> sessionSet = pictureSessions.get(pictureId);
+    if (sessionSet != null) {
+      sessionSet.remove(session);
+      if (sessionSet.isEmpty()) {
+        pictureSessions.remove(pictureId);
+      }
+    }
+
+    // 响应
+    PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
+    pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.INFO.getValue());
+    String message = String.format("%s 离开编辑", user.getUserName());
+    pictureEditResponseMessage.setMessage(message);
+    pictureEditResponseMessage.setUser(userService.getUserVO(user));
+    broadcastToPicture(pictureId, pictureEditResponseMessage);
   }
+
 
 
   /**
