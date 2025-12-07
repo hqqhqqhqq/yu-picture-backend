@@ -18,6 +18,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import com.yupi.yupicturebackend.manager.websocket.disruptor.PictureEditEventProducer;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -34,6 +35,9 @@ public class PictureEditHandler extends TextWebSocketHandler {
 
   @Resource
   private UserService userService;
+
+  @Resource
+  private PictureEditEventProducer pictureEditEventProducer;
 
   // 每张图片的编辑状态，key: pictureId, value: 当前正在编辑的用户 ID
   private final Map<Long, Long> pictureEditingUsers = new ConcurrentHashMap<>();
@@ -85,26 +89,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
     User user = (User) session.getAttributes().get("user");
     Long pictureId = (Long) session.getAttributes().get("pictureId");
     // 根据消息类型处理消息
-    switch (pictureEditMessageTypeEnum) {
-      case ENTER_EDIT:
-        handleEnterEditMessage(pictureEditRequestMessage, session, user, pictureId);
-        break;
-      case EXIT_EDIT:
-        handleExitEditMessage(pictureEditRequestMessage, session, user, pictureId);
-        break;
-      case EDIT_ACTION:
-        handleEditActionMessage(pictureEditRequestMessage, session, user, pictureId);
-        break;
-      default:
-        // 其他消息类型 返回消息错误提示
-        PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
-        pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.ERROR.getValue());
-        pictureEditResponseMessage.setMessage("消息类型错误");
-        pictureEditResponseMessage.setUser(userService.getUserVO(user));
-        session.sendMessage(new TextMessage(JSONUtil.toJsonStr(pictureEditResponseMessage)));
-        break;
-
-    }
+    pictureEditEventProducer.publishEvent(pictureEditRequestMessage, session, user, pictureId);
   }
 
 
@@ -115,7 +100,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
    * @param user
    * @param pictureId
    */
-  private void handleEnterEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) throws Exception {
+  public void handleEnterEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) throws Exception {
 
     // 没有用户正在编辑该图片 才能进入编辑
     if(!pictureEditingUsers.containsKey(pictureId)){
