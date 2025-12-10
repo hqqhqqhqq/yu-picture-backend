@@ -5,22 +5,22 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yupi.yupicturebackend.exception.BusinessException;
-import com.yupi.yupicturebackend.exception.ErrorCode;
-import com.yupi.yupicturebackend.exception.ThrowUtils;
+import com.yupi.yupicture.infrastructure.exception.BusinessException;
+import com.yupi.yupicture.infrastructure.exception.ErrorCode;
+import com.yupi.yupicture.infrastructure.exception.ThrowUtils;
 import com.yupi.yupicturebackend.model.dto.spaceuser.SpaceUserAddRequest;
 import com.yupi.yupicturebackend.model.dto.spaceuser.SpaceUserQueryRequest;
 import com.yupi.yupicturebackend.model.entity.Space;
 import com.yupi.yupicturebackend.model.entity.SpaceUser;
-import com.yupi.yupicturebackend.model.entity.User;
+import com.yupi.yupicture.domain.user.entity.User;
 import com.yupi.yupicturebackend.model.enums.SpaceRoleEnum;
 import com.yupi.yupicturebackend.model.vo.SpaceUserVO;
 import com.yupi.yupicturebackend.model.vo.SpaceVO;
-import com.yupi.yupicturebackend.model.vo.UserVO;
+import com.yupi.yupicture.interfaces.vo.user.UserVO;
 import com.yupi.yupicturebackend.service.SpaceService;
 import com.yupi.yupicturebackend.service.SpaceUserService;
-import com.yupi.yupicturebackend.mapper.SpaceUserMapper;
-import com.yupi.yupicturebackend.service.UserService;
+import com.yupi.yupicture.infrastructure.mapper.SpaceUserMapper;
+import com.yupi.yupicture.application.service.UserApplicationService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -47,7 +47,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
   private SpaceService spaceService;
 
   @Resource
-  private UserService userService;
+  private UserApplicationService userApplicationService;
 
   @Override
   public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {
@@ -70,7 +70,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     Long userId = spaceUser.getUserId();
     if (add) {
       ThrowUtils.throwIf(ObjectUtil.hasEmpty(spaceId, userId), ErrorCode.PARAMS_ERROR);
-      User user = userService.getById(userId);
+      User user = userApplicationService.getById(userId);
       ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
       Space space = spaceService.getById(spaceId);
       ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
@@ -114,7 +114,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     Set<Long> userIdSet = spaceUserList.stream().map(SpaceUser::getUserId).collect(Collectors.toSet());
     Set<Long> spaceIdSet = spaceUserList.stream().map(SpaceUser::getSpaceId).collect(Collectors.toSet());
     // 2. 批量查询用户和空间
-    Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
+    Map<Long, List<User>> userIdUserListMap = userApplicationService.listByIds(userIdSet).stream()
             .collect(Collectors.groupingBy(User::getId));
     Map<Long, List<Space>> spaceIdSpaceListMap = spaceService.listByIds(spaceIdSet).stream()
             .collect(Collectors.groupingBy(Space::getId));
@@ -127,7 +127,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
       if (userIdUserListMap.containsKey(userId)) {
         user = userIdUserListMap.get(userId).get(0);
       }
-      spaceUserVO.setUser(userService.getUserVO(user));
+      spaceUserVO.setUser(userApplicationService.getUserVO(user));
       // 填充空间信息
       Space space = null;
       if (spaceIdSpaceListMap.containsKey(spaceId)) {
@@ -146,8 +146,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     // 关联查询用户信息
     Long userId = spaceUser.getUserId();
     if (userId != null && userId > 0) {
-      User user = userService.getById(userId);
-      UserVO userVO = userService.getUserVO(user);
+      User user = userApplicationService.getById(userId);
+      UserVO userVO = userApplicationService.getUserVO(user);
       spaceUserVO.setUser(userVO);
     }
     // 关联查询空间信息

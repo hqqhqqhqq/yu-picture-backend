@@ -1,6 +1,7 @@
 package com.yupi.yupicturebackend.model.vo;
 
 import cn.hutool.json.JSONUtil;
+import com.yupi.yupicture.interfaces.vo.user.UserVO;
 import com.yupi.yupicturebackend.model.entity.Picture;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

@@ -2,12 +2,12 @@ package com.yupi.yupicturebackend.manager.websocket.disruptor;
 
 import cn.hutool.json.JSONUtil;
 import com.lmax.disruptor.WorkHandler;
+import com.yupi.yupicture.application.service.UserApplicationService;
 import com.yupi.yupicturebackend.manager.websocket.PictureEditHandler;
 import com.yupi.yupicturebackend.manager.websocket.model.PictureEditMessageTypeEnum;
 import com.yupi.yupicturebackend.manager.websocket.model.PictureEditRequestMessage;
 import com.yupi.yupicturebackend.manager.websocket.model.PictureEditResponseMessage;
-import com.yupi.yupicturebackend.model.entity.User;
-import com.yupi.yupicturebackend.service.UserService;
+import com.yupi.yupicture.domain.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent
     private PictureEditHandler pictureEditHandler;
 
     @Resource
-    private UserService userService;
+    private UserApplicationService userApplicationService;
 
     @Override
     public void onEvent(PictureEditEvent event) throws Exception {
@@ -51,7 +51,7 @@ public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent
                 PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
                 pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.ERROR.getValue());
                 pictureEditResponseMessage.setMessage("消息类型错误");
-                pictureEditResponseMessage.setUser(userService.getUserVO(user));
+                pictureEditResponseMessage.setUser(userApplicationService.getUserVO(user));
                 session.sendMessage(new TextMessage(JSONUtil.toJsonStr(pictureEditResponseMessage)));
         }
     }

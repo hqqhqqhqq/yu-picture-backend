@@ -3,16 +3,16 @@ package com.yupi.yupicturebackend.manager.auth;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.yupi.yupicture.application.service.UserApplicationService;
 import com.yupi.yupicturebackend.manager.auth.model.SpaceUserAuthConfig;
 import com.yupi.yupicturebackend.manager.auth.model.SpaceUserPermissionConstant;
 import com.yupi.yupicturebackend.manager.auth.model.SpaceUserRole;
 import com.yupi.yupicturebackend.model.entity.Space;
 import com.yupi.yupicturebackend.model.entity.SpaceUser;
-import com.yupi.yupicturebackend.model.entity.User;
+import com.yupi.yupicture.domain.user.entity.User;
 import com.yupi.yupicturebackend.model.enums.SpaceRoleEnum;
 import com.yupi.yupicturebackend.model.enums.SpaceTypeEnum;
 import com.yupi.yupicturebackend.service.SpaceUserService;
-import com.yupi.yupicturebackend.service.UserService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -27,7 +27,7 @@ import java.util.List;
 public class SpaceUserAuthManager {
 
   @Resource
-  private UserService userService;
+  private UserApplicationService userApplicationService;
 
   @Resource
   private SpaceUserService spaceUserService;
@@ -64,7 +64,7 @@ public class SpaceUserAuthManager {
     List<String> ADMIN_PERMISSIONS = getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
     // 公共图库
     if (space == null) {
-      if (userService.isAdmin(loginUser)) {
+      if (userApplicationService.isAdmin(loginUser)) {
         return ADMIN_PERMISSIONS;
       }
       return Collections.singletonList(SpaceUserPermissionConstant.PICTURE_VIEW);
@@ -77,7 +77,7 @@ public class SpaceUserAuthManager {
     switch (spaceTypeEnum) {
       case PRIVATE:
         // 私有空间，仅本人或管理员有所有权限
-        if (space.getUserId().equals(loginUser.getId()) || userService.isAdmin(loginUser)) {
+        if (space.getUserId().equals(loginUser.getId()) || userApplicationService.isAdmin(loginUser)) {
           return ADMIN_PERMISSIONS;
         } else {
           return new ArrayList<>();

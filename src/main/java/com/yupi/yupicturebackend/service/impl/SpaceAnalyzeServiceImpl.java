@@ -5,19 +5,19 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yupi.yupicturebackend.exception.BusinessException;
-import com.yupi.yupicturebackend.exception.ErrorCode;
-import com.yupi.yupicturebackend.exception.ThrowUtils;
-import com.yupi.yupicturebackend.mapper.SpaceMapper;
+import com.yupi.yupicture.application.service.UserApplicationService;
+import com.yupi.yupicture.infrastructure.exception.BusinessException;
+import com.yupi.yupicture.infrastructure.exception.ErrorCode;
+import com.yupi.yupicture.infrastructure.exception.ThrowUtils;
+import com.yupi.yupicture.infrastructure.mapper.SpaceMapper;
 import com.yupi.yupicturebackend.model.dto.space.analyze.*;
 import com.yupi.yupicturebackend.model.entity.Picture;
 import com.yupi.yupicturebackend.model.entity.Space;
-import com.yupi.yupicturebackend.model.entity.User;
+import com.yupi.yupicture.domain.user.entity.User;
 import com.yupi.yupicturebackend.model.vo.space.analyze.*;
 import com.yupi.yupicturebackend.service.PictureService;
 import com.yupi.yupicturebackend.service.SpaceAnalyzeService;
 import com.yupi.yupicturebackend.service.SpaceService;
-import com.yupi.yupicturebackend.service.UserService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space> implements SpaceAnalyzeService {
 
   @Resource
-  private UserService userService;
+  private UserApplicationService userApplicationService;
 
   @Resource
   private SpaceService spaceService;
@@ -56,7 +56,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space> imp
     if (spaceUsageAnalyzeRequest.isQueryAll() || spaceUsageAnalyzeRequest.isQueryPublic()) {
       // 查询全部或公共图库逻辑
       // 仅管理员可以访问
-      boolean isAdmin = userService.isAdmin(loginUser);
+      boolean isAdmin = userApplicationService.isAdmin(loginUser);
       ThrowUtils.throwIf(!isAdmin, ErrorCode.NO_AUTH_ERROR, "无权访问空间");
       // 统计公共图库的资源使用
       QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
@@ -224,7 +224,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space> imp
     ThrowUtils.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
 
     // 仅管理员可查看空间排行
-    ThrowUtils.throwIf(!userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR, "无权查看空间排行");
+    ThrowUtils.throwIf(!userApplicationService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR, "无权查看空间排行");
 
     // 构造查询条件
     QueryWrapper<Space> queryWrapper = new QueryWrapper<>();
@@ -249,7 +249,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space> imp
     boolean queryAll = spaceAnalyzeRequest.isQueryAll();
     // 全空间分析或者公共图库权限校验 仅管理员可访问
     if (queryAll || queryPublic) {
-      ThrowUtils.throwIf(!userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+      ThrowUtils.throwIf(!userApplicationService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
     } else {
       // 分析指定的空间 仅本人或者管理员可用
       Long spaceId = spaceAnalyzeRequest.getSpaceId();

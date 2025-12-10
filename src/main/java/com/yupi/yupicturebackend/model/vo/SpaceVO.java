@@ -1,5 +1,6 @@
 package com.yupi.yupicturebackend.model.vo;
 
+import com.yupi.yupicture.interfaces.vo.user.UserVO;
 import com.yupi.yupicturebackend.model.entity.Space;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

@@ -2,22 +2,22 @@ package com.yupi.yupicturebackend.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yupi.yupicturebackend.annotation.AuthCheck;
-import com.yupi.yupicturebackend.common.BaseResponse;
-import com.yupi.yupicturebackend.common.DeleteRequest;
-import com.yupi.yupicturebackend.common.ResultUtils;
-import com.yupi.yupicturebackend.constant.UserConstant;
-import com.yupi.yupicturebackend.exception.BusinessException;
-import com.yupi.yupicturebackend.exception.ErrorCode;
-import com.yupi.yupicturebackend.exception.ThrowUtils;
+import com.yupi.yupicture.application.service.UserApplicationService;
+import com.yupi.yupicture.infrastructure.annotation.AuthCheck;
+import com.yupi.yupicture.infrastructure.common.BaseResponse;
+import com.yupi.yupicture.infrastructure.common.DeleteRequest;
+import com.yupi.yupicture.infrastructure.common.ResultUtils;
+import com.yupi.yupicture.domain.user.constant.UserConstant;
+import com.yupi.yupicture.infrastructure.exception.BusinessException;
+import com.yupi.yupicture.infrastructure.exception.ErrorCode;
+import com.yupi.yupicture.infrastructure.exception.ThrowUtils;
 import com.yupi.yupicturebackend.manager.auth.SpaceUserAuthManager;
 import com.yupi.yupicturebackend.model.dto.space.*;
 import com.yupi.yupicturebackend.model.entity.Space;
-import com.yupi.yupicturebackend.model.entity.User;
+import com.yupi.yupicture.domain.user.entity.User;
 import com.yupi.yupicturebackend.model.enums.SpaceLevelEnum;
 import com.yupi.yupicturebackend.model.vo.SpaceVO;
 import com.yupi.yupicturebackend.service.SpaceService;
-import com.yupi.yupicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class SpaceController {
 
   @Resource
-  private UserService userService;
+  private UserApplicationService userApplicationService;
 
   @Resource
   private SpaceService spaceService;
@@ -46,7 +46,7 @@ public class SpaceController {
   @PostMapping("/add")
   public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceADDRequest, HttpServletRequest request) {
     ThrowUtils.throwIf(spaceADDRequest == null, ErrorCode.PARAMS_ERROR);
-    User loginUser = userService.getLoginUser(request);
+    User loginUser = userApplicationService.getLoginUser(request);
     long newId = spaceService.addSpace(spaceADDRequest, loginUser);
     return ResultUtils.success(newId);
   }
@@ -58,7 +58,7 @@ public class SpaceController {
     if (deleteRequest == null || deleteRequest.getId() <= 0) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR);
     }
-    User loginUser = userService.getLoginUser(request);
+    User loginUser = userApplicationService.getLoginUser(request);
     Long id = deleteRequest.getId();
     // 判断是否存在
     Space oldSpace = spaceService.getById(id);
@@ -111,7 +111,7 @@ public class SpaceController {
     Space space = spaceService.getById(id);
     ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
     SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
-    User loginUser = userService.getLoginUser(request);
+    User loginUser = userApplicationService.getLoginUser(request);
     List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
     spaceVO.setPermissionList(permissionList);
     // 获取封装类
@@ -160,13 +160,13 @@ public class SpaceController {
     space.setEditTime(new Date());
     // 数据校验
     spaceService.validSpace(space, false);
-    User loginUser = userService.getLoginUser(request);
+    User loginUser = userApplicationService.getLoginUser(request);
     // 判断是否存在
     long id = spaceEditRequest.getId();
     Space oldSpace = spaceService.getById(id);
     ThrowUtils.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR);
     // 仅本人或管理员可编辑
-    if (!oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+    if (!oldSpace.getUserId().equals(loginUser.getId()) && !userApplicationService.isAdmin(loginUser)) {
       throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
     }
     // 操作数据库

@@ -1,6 +1,6 @@
 package com.yupi.yupicturebackend.model.dto.picture;
 
-import com.yupi.yupicturebackend.common.PageRequest;
+import com.yupi.yupicture.infrastructure.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
